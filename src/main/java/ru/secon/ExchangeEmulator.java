@@ -1,5 +1,7 @@
 package ru.secon;
 
+import java.nio.ByteBuffer;
+
 
 public class ExchangeEmulator {
 
@@ -44,9 +46,20 @@ public class ExchangeEmulator {
 		}
 	}
 
-	public byte[] placeOrder(Order order) {
-		// TODO Auto-generated method stub
-		return null;
+	public static final int MAX_MSG_LENGTH = 100;
+
+
+	private static final byte ORDER_ADDED = 'A';
+
+	private static final int ID_LENGTH = 10;
+
+	public static ByteBuffer msg = ByteBuffer.allocate(MAX_MSG_LENGTH);
+
+	private int id;
+
+	public void placeOrder(ByteBuffer buf, Order order) {
+		buf.put(ORDER_ADDED);
+		AsciiByteUtils.putInt(msg, id++, ID_LENGTH);
 	}
 	
 	
