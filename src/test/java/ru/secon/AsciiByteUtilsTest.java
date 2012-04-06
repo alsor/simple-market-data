@@ -21,4 +21,15 @@ public class AsciiByteUtilsTest {
 		assertThat(dest, containsBytes("0000000123"));
 	}
 
+	@Test
+	public void putIntAsFloat() throws Exception {
+		ByteBuffer dest = ByteBuffer.allocate(11);
+		int num = 1233210;
+
+		AsciiByteUtils.putIntAsFloat(dest, num);
+		dest.flip();
+
+		assertThat(dest, containsBytes("000123.3210"));
+	}
+
 }

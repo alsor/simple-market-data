@@ -27,7 +27,8 @@ public class ExchangeEmulatorTest {
 		ByteBuffer msg = ByteBuffer.allocate(ExchangeEmulator.MAX_MSG_LENGTH);
 		emulator.placeOrder(msg, order1);
 		msg.flip();
-		assertThat(msg, containsBytes("A??????????"));
+		System.out.println(new String(msg.array()));
+		assertThat(msg, containsBytes("A??????????123ABCS000034.5000000100"));
 		// should cause previous order execution and no new order placed message
 		// emulator.placeOrder(order.symbol(symbol).side(BUY).price(34.5).qty(50));
 

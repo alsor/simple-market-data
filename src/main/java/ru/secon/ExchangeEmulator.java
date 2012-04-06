@@ -1,14 +1,28 @@
 package ru.secon;
 
+import static ru.secon.AsciiByteUtils.putInt;
+import static ru.secon.AsciiByteUtils.putIntAsFloat;
+import static ru.secon.Utils.doubleAsInt;
+
 import java.nio.ByteBuffer;
 
 
 public class ExchangeEmulator {
 
+	public static final int MAX_MSG_LENGTH = 100;
+	public static final byte ORDER_ADDED = 'A';
+	public static final int ID_LENGTH = 10;
+	public static final int SYMBOL_LENGTH = 6;
+	private static final int QTY_LENGTH = 6;
+
+	private int id = 1;
+
 	public static class Symbol {
 		public static Symbol symbol = new Symbol();
+		public byte[] bytes = new byte[SYMBOL_LENGTH];
 
 		public Symbol fromString(String s) {
+			System.arraycopy(s.getBytes(), 0, bytes, 0, SYMBOL_LENGTH);
 			return this;
 		}
 	}
@@ -21,7 +35,7 @@ public class ExchangeEmulator {
 
 		public Symbol symbol = new Symbol();
 		public long id;
-		public double price;
+		public int price;
 		public byte side;
 		public int qty;
 
@@ -36,7 +50,7 @@ public class ExchangeEmulator {
 		}
 
 		public Order price(double price) {
-			this.price = price;
+			this.price = doubleAsInt(price);
 			return this;
 		}
 
@@ -46,20 +60,13 @@ public class ExchangeEmulator {
 		}
 	}
 
-	public static final int MAX_MSG_LENGTH = 100;
-
-
-	private static final byte ORDER_ADDED = 'A';
-
-	private static final int ID_LENGTH = 10;
-
-	public static ByteBuffer msg = ByteBuffer.allocate(MAX_MSG_LENGTH);
-
-	private int id;
-
 	public void placeOrder(ByteBuffer buf, Order order) {
 		buf.put(ORDER_ADDED);
-		AsciiByteUtils.putInt(msg, id++, ID_LENGTH);
+		putInt(buf, id++, ID_LENGTH);
+		buf.put(order.symbol.bytes, 0, SYMBOL_LENGTH);
+		buf.put(order.side);
+		putIntAsFloat(buf, order.price);
+		putInt(buf, order.qty, QTY_LENGTH);
 	}
 	
 	

@@ -8,6 +8,8 @@ import org.hamcrest.Matcher;
 
 public class CustomMatchers {
 
+	protected static final byte Q = '?';
+
 	public static Matcher<ByteBuffer> containsBytes(final String expectedStr) {
 		return new BaseMatcher<ByteBuffer>() {
 	
@@ -19,6 +21,7 @@ public class CustomMatchers {
 					if (bb.remaining() != expected.length) return false;
 	
 					for (int i = bb.position(), j = 0; i < bb.limit(); i++, j++) {
+						if (expected[j] == Q) continue;
 						if (expected[j] != bb.get(i)) return false;
 					}
 					return true;
