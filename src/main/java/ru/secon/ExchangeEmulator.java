@@ -2,18 +2,24 @@ package ru.secon;
 
 import static ru.secon.AsciiByteUtils.putInt;
 import static ru.secon.AsciiByteUtils.putIntAsFloat;
+import static ru.secon.ExchangeEmulator.Order.order;
 import static ru.secon.Utils.doubleAsInt;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 
 public class ExchangeEmulator {
 
+	public static final byte NL = (byte) '\n';
 	public static final int MAX_MSG_LENGTH = 100;
 	public static final byte ORDER_ADDED = 'A';
 	public static final int ID_LENGTH = 10;
 	public static final int SYMBOL_LENGTH = 6;
-	private static final int QTY_LENGTH = 6;
+	public static final int QTY_LENGTH = 6;
+	public static final int FILE_BUFFER_SIZE = 1024;
 
 	private int id = 1;
 
@@ -69,5 +75,22 @@ public class ExchangeEmulator {
 		putInt(buf, order.qty, QTY_LENGTH);
 	}
 	
-	
+	public static void main(String[] args) {
+		FileChannel channel = new FileOutputStream(new File("data.txt")).getChannel();
+		ExchangeEmulator emulator = new ExchangeEmulator();
+		ByteBuffer buf = ByteBuffer.allocate(FILE_BUFFER_SIZE);
+		
+		emulator.placeOrder(
+				buf,
+				order.symbol(randomSymbol()).side(randomSide()).price(randomPrice())
+						.qty(randomQty()));
+		buf.put(NL);
+		
+		channel.write(buf);
+		channel.close();
+	}
+
+	private static Symbol randomSymbol() {
+		return null;
+	}
 }
