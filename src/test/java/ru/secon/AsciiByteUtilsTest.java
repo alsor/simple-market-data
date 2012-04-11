@@ -1,5 +1,6 @@
 package ru.secon;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static ru.secon.CustomMatchers.containsBytes;
 
@@ -32,4 +33,19 @@ public class AsciiByteUtilsTest {
 		assertThat(dest, containsBytes("000123.3210"));
 	}
 
+	@Test
+	public void parseInt() throws Exception {
+		ByteBuffer src = ByteBuffer.wrap("XXX0012345YYY".getBytes());
+		int offset = 3;
+		int length = 7;
+		assertEquals(12345, AsciiByteUtils.parseInt(src, offset, length));
+	}
+
+	@Test
+	public void parsePrice() throws Exception {
+		ByteBuffer src = ByteBuffer.wrap("XXXX000374.7810ZZZ".getBytes());
+		int offset = 4;
+		int length = 11;
+		assertEquals(3747810, AsciiByteUtils.parsePrice(src, offset, length));
+	}
 }

@@ -152,4 +152,63 @@ public class AsciiByteUtils {
 		}
 	}
 
+	public static int parseInt(ByteBuffer src, int offset, int length) {
+		boolean isNeg = false;
+		while (length > 0) {
+			byte b = src.get(offset);
+			if ((b == (byte) '0') || (b == (byte) ' ') || (((b == (byte) '-') && (isNeg = true)))) {
+				offset++;
+				length--;
+			} else {
+				break;
+			}
+		}
+
+		int x = 0;
+		while (length > 0) {
+			byte c = src.get(offset);
+			x *= 10;
+			x += (c - '0');
+			length--;
+			offset++;
+		}
+
+		if (isNeg) {
+			x = -x;
+		}
+
+		return x;
+	}
+
+	public static int parsePrice(ByteBuffer src, int offset, int length) {
+		boolean isNeg = false;
+		while (length > 0) {
+			byte b = src.get(offset);
+			if ((b == (byte) '0') || (b == (byte) ' ') || (((b == (byte) '-') && (isNeg = true)))
+					|| (b == (byte) '.')) {
+				offset++;
+				length--;
+			} else {
+				break;
+			}
+		}
+
+		int x = 0;
+		while (length > 0) {
+			byte c = src.get(offset);
+			if (c != (byte) '.') {
+				x *= 10;
+				x += (c - '0');
+			}
+			length--;
+			offset++;
+		}
+
+		if (isNeg) {
+			x = -x;
+		}
+
+		return x;
+	}
+
 }
