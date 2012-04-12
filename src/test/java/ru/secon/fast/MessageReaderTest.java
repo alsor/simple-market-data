@@ -1,23 +1,24 @@
-package ru.secon;
+package ru.secon.fast;
 
 import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.getCurrentArguments;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static ru.secon.CustomMatchers.containsBytesInTheBeginning;
-import static ru.secon.TopOfBook.BUY;
-import static ru.secon.TopOfBook.SELL;
+import static ru.secon.fast.TopOfBook.BUY;
+import static ru.secon.fast.TopOfBook.SELL;
 
 import java.nio.ByteBuffer;
 
-import org.easymock.IAnswer;
 import org.junit.Test;
+
+import ru.secon.CaptureSymbol;
+import ru.secon.fast.MessageReader;
 
 public class MessageReaderTest {
 
@@ -30,7 +31,7 @@ public class MessageReaderTest {
 		ByteBuffer buffer = wrap("A0000000888123ABCS000034.5000000100\n"
 				+ "A0000000999456QWEB000974.2500007894\nA0000");
 
-		CaptureSymbol capturedSymbol1 = new CaptureSymbol();
+		CaptureSymbol capturedSymbol1 = new CaptureSymbol(0, 2);
 		{
 			int orderId = 888;
 			byte side = SELL;
@@ -40,7 +41,7 @@ public class MessageReaderTest {
 			expectLastCall().andAnswer(capturedSymbol1);
 		}
 
-		CaptureSymbol capturedSymbol2 = new CaptureSymbol();
+		CaptureSymbol capturedSymbol2 = new CaptureSymbol(0, 2);
 		{
 			int orderId = 999;
 			byte side = BUY;
@@ -61,27 +62,6 @@ public class MessageReaderTest {
 
 	private ByteBuffer wrap(String string) {
 		return ByteBuffer.wrap(string.getBytes());
-	}
-
-	@SuppressWarnings("rawtypes")
-	private static class CaptureSymbol implements IAnswer {
-
-		private String value;
-
-		public Object answer() throws Throwable {
-			Object[] args = getCurrentArguments();
-			ByteBuffer buf = (ByteBuffer) args[0];
-			int offset = ((Integer) args[2]).intValue();
-
-			value = new String(buf.array(), offset, MessageReader.SYMBOL_LENGTH);
-
-			return null;
-		}
-
-		public String getValue() {
-			return value;
-		}
-
 	}
 
 }

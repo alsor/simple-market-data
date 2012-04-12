@@ -1,6 +1,8 @@
-package ru.secon;
+package ru.secon.fast;
 
 import java.nio.ByteBuffer;
+
+import ru.secon.AsciiByteUtils;
 
 public class MessageReader {
 
@@ -13,6 +15,7 @@ public class MessageReader {
 			+ QTY_LENGTH + 1;
 
 	public static final byte ADD_ORDER = 'A';
+
 	private final TopOfBook tob;
 
 	public MessageReader(TopOfBook tob) {

@@ -1,4 +1,4 @@
-package ru.secon;
+package ru.secon.fast;
 
 import java.nio.ByteBuffer;
 
