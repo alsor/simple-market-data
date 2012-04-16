@@ -23,6 +23,7 @@ public class Order {
 
 	@Override
 	public int hashCode() {
-		return new HashCodeBuilder().append(name)
+		return new HashCodeBuilder().append(symbol).append(id).append(side).append(price).append(qty)
+				.toHashCode();
 	}
 }

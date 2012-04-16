@@ -2,30 +2,30 @@ package ru.secon.fast;
 
 import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static ru.secon.CustomMatchers.containsBytesInTheBeginning;
-import static ru.secon.fast.TopOfBook.BUY;
-import static ru.secon.fast.TopOfBook.SELL;
+import static ru.secon.Constants.BUY;
+import static ru.secon.Constants.SELL;
+import static ru.secon.testutils.CustomMatchers.containsBytesInTheBeginning;
+import static ru.secon.testutils.Utils.wrap;
 
 import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
-import ru.secon.CaptureSymbol;
-import ru.secon.fast.MessageReader;
+import ru.secon.testutils.CaptureSymbol;
 
 public class MessageReaderTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void invoke_add_order() throws Exception {
-		TopOfBook tob = createMock(TopOfBook.class);
+		TopOfBook tob = createStrictMock(TopOfBook.class);
 		MessageReader reader = new MessageReader(tob);
 		
 		ByteBuffer buffer = wrap("A0000000888123ABCS000034.5000000100\n"
@@ -58,10 +58,6 @@ public class MessageReaderTest {
 		assertThat(buffer, containsBytesInTheBeginning("A0000"));
 		assertEquals("123ABC", capturedSymbol1.getValue());
 		assertEquals("456QWE", capturedSymbol2.getValue());
-	}
-
-	private ByteBuffer wrap(String string) {
-		return ByteBuffer.wrap(string.getBytes());
 	}
 
 }

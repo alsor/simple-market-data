@@ -1,12 +1,11 @@
-package ru.secon;
+package ru.secon.testutils;
 
 import static org.easymock.EasyMock.getCurrentArguments;
+import static ru.secon.Constants.SYMBOL_LENGTH;
 
 import java.nio.ByteBuffer;
 
 import org.easymock.IAnswer;
-
-import ru.secon.fast.MessageReader;
 
 @SuppressWarnings("rawtypes")
 public class CaptureSymbol implements IAnswer {
@@ -25,7 +24,7 @@ public class CaptureSymbol implements IAnswer {
 		ByteBuffer buf = (ByteBuffer) args[buffersArgIndex];
 		int offset = ((Integer) args[offsetArgIndex]).intValue();
 
-		value = new String(buf.array(), offset, MessageReader.SYMBOL_LENGTH);
+		value = new String(buf.array(), offset, SYMBOL_LENGTH);
 
 		return null;
 	}

@@ -1,6 +1,8 @@
 package ru.secon.plain;
 
-import static org.junit.Assert.assertEquals;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
 import org.junit.Test;
 
@@ -9,21 +11,27 @@ public class TopOfBookTest {
 
 	@Test
 	public void generate_updates() throws Exception {
-		TopOfBook tob = new TopOfBook();
+		UpdateListener updateListener = createMock(UpdateListener.class);
+		TopOfBook tob = new TopOfBook(updateListener);
 		
 		Order order = new Order();
 		order.symbol = "123ABC";
 		order.id = 789;
 		order.side = Side.SELL;
-		order.price = 2550000;
+		order.price = 255000;
 		order.qty = 100;
 
-		Update update = tob.addOrder(order);
-		assertEquals("123ABC", update.symbol);
-		assertEquals(2550000, update.sellPrice);
-		assertEquals(100, update.sellQty);
-		assertEquals(0, update.buyPrice);
-		assertEquals(0, update.buyQty);
+		Update update = new Update();
+		update.symbol = "123ABC";
+		update.sellPrice = 255000;
+		update.sellQty = 100;
+		update.buyPrice = 0;
+		update.buyQty = 0;
+		updateListener.onUpdate(update);
+
+		replay(updateListener);
+		tob.addOrder(order);
+		verify(updateListener);
 	}
 
 }

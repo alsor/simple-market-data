@@ -13,9 +13,9 @@ import java.nio.ByteBuffer;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.secon.CaptureSymbol;
 import ru.secon.UpdateListener;
 import ru.secon.fast.TopOfBook;
+import ru.secon.testutils.CaptureSymbol;
 
 public class TopOfBookTest {
 

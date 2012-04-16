@@ -1,10 +1,10 @@
 package ru.secon;
 
 import static org.junit.Assert.assertThat;
-import static ru.secon.CustomMatchers.containsBytes;
 import static ru.secon.ExchangeEmulator.Order.SELL;
 import static ru.secon.ExchangeEmulator.Order.order;
 import static ru.secon.ExchangeEmulator.Symbol.symbol;
+import static ru.secon.testutils.CustomMatchers.containsBytes;
 
 import java.nio.ByteBuffer;
 

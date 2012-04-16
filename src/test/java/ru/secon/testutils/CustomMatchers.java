@@ -1,4 +1,4 @@
-package ru.secon;
+package ru.secon.testutils;
 
 import java.nio.ByteBuffer;
 

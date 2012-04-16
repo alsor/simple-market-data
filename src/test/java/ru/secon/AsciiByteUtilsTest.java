@@ -2,7 +2,7 @@ package ru.secon;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static ru.secon.CustomMatchers.containsBytes;
+import static ru.secon.testutils.CustomMatchers.containsBytes;
 
 import java.nio.ByteBuffer;
 
