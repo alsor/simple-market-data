@@ -5,16 +5,16 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
-import static ru.secon.fast.TopOfBook.SELL;
+import static ru.secon.Constants.SELL;
 
 import java.nio.ByteBuffer;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.secon.UpdateListener;
-import ru.secon.fast.TopOfBook;
 import ru.secon.testutils.CaptureSymbol;
 
 public class TopOfBookTest {
@@ -25,7 +25,7 @@ public class TopOfBookTest {
 	@Before
 	public void setUp() {
 		updateListener = createMock(UpdateListener.class);
-		tob = new TopOfBookFastImpl(updateListener);
+		tob = new TopOfBook(updateListener);
 	}
 
 	@Test
@@ -50,6 +50,7 @@ public class TopOfBookTest {
 		// added mathed order - new TOB with execution taken into account
 	}
 
+	@SuppressWarnings("unchecked")
 	private CaptureSymbol expectUpdate(int sellPrice, int sellQty, int buyPrice, int buyQty) {
 		CaptureSymbol capturedSymbol = new CaptureSymbol(0, 1);
 		updateListener.onUpdate((ByteBuffer) anyObject(), anyInt(), eq(sellPrice), eq(sellQty), eq(buyPrice),
@@ -59,7 +60,9 @@ public class TopOfBookTest {
 	}
 
 	private void addOrder(String symbol, int orderId, byte side, int price, int qty) {
+		replay(updateListener);
 		tob.onAddOrder(wrap(symbol), orderId, 0, side, price, qty);
+		verify(updateListener);
 	}
 
 	private static ByteBuffer wrap(String string) {

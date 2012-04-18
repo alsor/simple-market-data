@@ -12,13 +12,16 @@ import java.nio.ByteBuffer;
 
 import ru.secon.AsciiByteUtils;
 import ru.secon.Constants;
+import ru.secon.MessageCounter;
 
 public class MessageReader {
 
 	private final TopOfBook tob;
+	private final MessageCounter counter;
 
-	public MessageReader(TopOfBook tob) {
+	public MessageReader(TopOfBook tob, MessageCounter counter) {
 		this.tob = tob;
+		this.counter = counter;
 	}
 
 	public void processBuffer(ByteBuffer buffer) {
@@ -59,6 +62,9 @@ public class MessageReader {
 				inc(buffer, QTY_LENGTH);
 
 				tob.addOrder(order);
+
+				counter.processed();
+
 				inc(buffer, 1); // for new line
 			}
 		}

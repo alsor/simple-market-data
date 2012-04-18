@@ -1,5 +1,6 @@
 package ru.secon.plain;
 
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -13,11 +14,14 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
+import ru.secon.MessageCounter;
+
 public class MessageReaderTest {
 	@Test
 	public void create_order() throws Exception {
 		TopOfBook tob = createStrictMock(TopOfBook.class);
-		MessageReader reader = new MessageReader(tob);
+		MessageCounter counter = createMock(MessageCounter.class);
+		MessageReader reader = new MessageReader(tob, counter);
 
 		ByteBuffer buffer = wrap("A0000000888123ABCS000034.5000000100\n"
 				+ "A0000000999456QWEB000974.2500007894\nA0000");
@@ -43,6 +47,9 @@ public class MessageReaderTest {
 
 			tob.addOrder(order);
 		}
+
+		counter.processed();
+		counter.processed();
 
 		replay(tob);
 		reader.processBuffer(buffer);
