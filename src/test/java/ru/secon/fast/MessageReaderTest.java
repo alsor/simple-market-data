@@ -2,6 +2,7 @@ package ru.secon.fast;
 
 import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expectLastCall;
@@ -18,6 +19,7 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
+import ru.secon.MessageCounter;
 import ru.secon.testutils.CaptureSymbol;
 
 public class MessageReaderTest {
@@ -26,7 +28,8 @@ public class MessageReaderTest {
 	@Test
 	public void invoke_add_order() throws Exception {
 		TopOfBook tob = createStrictMock(TopOfBook.class);
-		MessageReader reader = new MessageReader(tob);
+		MessageCounter counter = createMock(MessageCounter.class);
+		MessageReader reader = new MessageReader(tob, counter);
 		
 		ByteBuffer buffer = wrap("A0000000888123ABCS000034.5000000100\n"
 				+ "A0000000999456QWEB000974.2500007894\nA0000");
@@ -51,9 +54,12 @@ public class MessageReaderTest {
 			expectLastCall().andAnswer(capturedSymbol2);
 		}
 
-		replay(tob);
+		counter.processed();
+		counter.processed();
+
+		replay(tob, counter);
 		reader.processBuffer(buffer);
-		verify(tob);
+		verify(tob, counter);
 		
 		assertThat(buffer, containsBytesInTheBeginning("A0000"));
 		assertEquals("123ABC", capturedSymbol1.getValue());

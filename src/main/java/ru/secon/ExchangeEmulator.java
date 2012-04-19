@@ -98,7 +98,7 @@ public class ExchangeEmulator {
 		ByteBuffer buf = ByteBuffer.allocate(FILE_BUFFER_SIZE);
 
 		
-		int msgToGenerate = 10000000;
+		int msgToGenerate = 100000000;
 		for (int msgCount = 0; msgCount < msgToGenerate; msgCount++) {
 			emulator.placeOrder(buf, order.symbol(randomSymbol()).side(randomSide()).price(randomPrice())
 					.qty(randomQty()));

@@ -51,9 +51,9 @@ public class MessageReaderTest {
 		counter.processed();
 		counter.processed();
 
-		replay(tob);
+		replay(tob, counter);
 		reader.processBuffer(buffer);
-		verify(tob);
+		verify(tob, counter);
 
 		assertThat(buffer, containsBytesInTheBeginning("A0000"));
 	}

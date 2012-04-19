@@ -11,14 +11,17 @@ import static ru.secon.Utils.inc;
 import java.nio.ByteBuffer;
 
 import ru.secon.AsciiByteUtils;
+import ru.secon.MessageCounter;
 
 public class MessageReader {
 
 
 	private final TopOfBook tob;
+	private final MessageCounter counter;
 
-	public MessageReader(TopOfBook tob) {
+	public MessageReader(TopOfBook tob, MessageCounter counter) {
 		this.tob = tob;
+		this.counter = counter;
 	}
 
 	/**
@@ -57,6 +60,7 @@ public class MessageReader {
 				inc(buffer, QTY_LENGTH);
 
 				tob.onAddOrder(buffer, orderId, symbolOffset, side, price, qty);
+				counter.processed();
 				inc(buffer, 1); // for new line
 			}
 		}
