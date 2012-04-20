@@ -9,7 +9,7 @@ import ru.undev.FixedByteSlice2IntOpenHashMap;
 
 public class TopOfBook {
 
-	public static final int INITIAL_SIZE = 10 * 1000;
+	public static final int INITIAL_SIZE = 300 * 1000;
 	private final UpdateListener updateListener;
 
 	public TopOfBook(UpdateListener updateListener) {
@@ -17,7 +17,7 @@ public class TopOfBook {
 	}
 
 	private FixedByteSlice2IntOpenHashMap symbol2top = new FixedByteSlice2IntOpenHashMap(SYMBOL_LENGTH);
-	private int[] tops = new int[INITIAL_SIZE];
+	private int[] tops = new int[INITIAL_SIZE * 4];
 	private int nextPos = 0;
 	
 	public void onAddOrder(ByteBuffer src, int orderId, int symbolOffset, byte side, int price, int qty) {
@@ -26,6 +26,11 @@ public class TopOfBook {
 		
 		if (pos == -1) {
 			pos = nextPos++;
+			if (pos >= ((tops.length - 1) / 4)) {
+				int[] newTops = new int[(int) (tops.length * 2)];
+				System.arraycopy(tops, 0, newTops, 0, tops.length);
+				tops = newTops;
+			}
 			symbol2top.put(src, symbolOffset, pos);
 
 			if (side == SELL) {
