@@ -25,7 +25,7 @@ public class PerfTest {
 
 		FileChannel channel = new FileInputStream(file).getChannel();
 
-		ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024 * 1000);
+		ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024 * 400);
 
 		UpdateListener updateListener = new UpdateListener();
 		TopOfBook tob = new TopOfBook(updateListener);

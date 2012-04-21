@@ -29,7 +29,7 @@ public class ExchangeEmulator {
 	public static final int SYMBOL_LENGTH = 6;
 	public static final int QTY_LENGTH = 6;
 	public static final int FILE_BUFFER_SIZE = 1024 * 1024;
-	public static final int SYMBOLS_SIZE = 100 * 1000;
+	public static final int SYMBOLS_SIZE = 200 * 1000;
 	public static final int PRICE_POWERS = 7;
 	public static final int MAX_QUANTITY = 100000;
 	public static char[] letters = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D',
@@ -98,7 +98,7 @@ public class ExchangeEmulator {
 		ByteBuffer buf = ByteBuffer.allocate(FILE_BUFFER_SIZE);
 
 		
-		int msgToGenerate = 100000000;
+		int msgToGenerate = 30 * 1000 * 1000;
 		for (int msgCount = 0; msgCount < msgToGenerate; msgCount++) {
 			emulator.placeOrder(buf, order.symbol(randomSymbol()).side(randomSide()).price(randomPrice())
 					.qty(randomQty()));
