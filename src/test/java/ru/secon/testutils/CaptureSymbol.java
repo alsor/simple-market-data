@@ -3,8 +3,6 @@ package ru.secon.testutils;
 import static org.easymock.EasyMock.getCurrentArguments;
 import static ru.secon.Constants.SYMBOL_LENGTH;
 
-import java.nio.ByteBuffer;
-
 import org.easymock.IAnswer;
 
 @SuppressWarnings("rawtypes")
@@ -21,10 +19,10 @@ public class CaptureSymbol implements IAnswer {
 
 	public Object answer() throws Throwable {
 		Object[] args = getCurrentArguments();
-		ByteBuffer buf = (ByteBuffer) args[buffersArgIndex];
+		byte[] buf = (byte[]) args[buffersArgIndex];
 		int offset = ((Integer) args[offsetArgIndex]).intValue();
 
-		value = new String(buf.array(), offset, SYMBOL_LENGTH);
+		value = new String(buf, offset, SYMBOL_LENGTH);
 
 		return null;
 	}

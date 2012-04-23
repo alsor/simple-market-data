@@ -2,6 +2,8 @@ package ru.secon.fast;
 
 import static ru.secon.Constants.ADD_ORDER;
 import static ru.secon.Constants.ADD_ORDER_LENGTH;
+import static ru.secon.Constants.EXECUTE_ORDER;
+import static ru.secon.Constants.EXECUTE_ORDER_LENGTH;
 import static ru.secon.Constants.ID_LENGTH;
 import static ru.secon.Constants.PRICE_LENGTH;
 import static ru.secon.Constants.QTY_LENGTH;
@@ -60,6 +62,19 @@ public class MessageReader {
 				inc(buffer, QTY_LENGTH);
 
 				tob.onAddOrder(buffer, orderId, symbolOffset, side, price, qty);
+				counter.processed();
+				inc(buffer, 1); // for new line
+			} else if (type == EXECUTE_ORDER) {
+				if (buffer.remaining() < EXECUTE_ORDER_LENGTH) {
+					buffer.compact();
+					return;
+				}
+				inc(buffer, 1); // for type
+
+				int orderId = AsciiByteUtils.parseInt(buffer, buffer.position(), ID_LENGTH);
+				inc(buffer, ID_LENGTH);
+
+				tob.executeOrder(orderId);
 				counter.processed();
 				inc(buffer, 1); // for new line
 			}

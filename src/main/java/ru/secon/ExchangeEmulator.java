@@ -7,6 +7,11 @@ import static ru.secon.ExchangeEmulator.Order.SELL;
 import static ru.secon.ExchangeEmulator.Order.order;
 import static ru.secon.ExchangeEmulator.Symbol.symbol;
 import static ru.secon.Utils.doubleAsInt;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntComparator;
+import it.unimi.dsi.fastutil.ints.IntHeapPriorityQueue;
+import it.unimi.dsi.fastutil.ints.IntPriorityQueue;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -19,12 +24,15 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import ru.undev.FixedByteSlice2ObjectOpenHashMap;
+
 
 public class ExchangeEmulator {
 
 	public static final byte NL = (byte) '\n';
 	public static final int MAX_MSG_LENGTH = 100;
 	public static final byte ORDER_ADDED = 'A';
+	public static final byte ORDER_EXECUTED = 'E';
 	public static final int ID_LENGTH = 10;
 	public static final int SYMBOL_LENGTH = 6;
 	public static final int QTY_LENGTH = 6;
@@ -82,14 +90,63 @@ public class ExchangeEmulator {
 	}
 
 	public void placeOrder(ByteBuffer buf, Order order) {
+		int orderId = id++;
+
+		orderId2price.put(orderId, order.price);
+
+		if (SELL == order.side) {
+			IntPriorityQueue sellOrderIds = symbol2sell.get(order.symbol.bytes);
+			if (sellOrderIds == null) {
+				sellOrderIds = new IntHeapPriorityQueue(sellComparator);
+				symbol2sell.put(order.symbol.bytes, sellOrderIds);
+			}
+			sellOrderIds.enqueue(orderId);
+		} else {
+			IntPriorityQueue buyOrderIds = symbol2buy.get(order.symbol.bytes);
+			if (buyOrderIds == null) {
+				buyOrderIds = new IntHeapPriorityQueue(buyComparator);
+				symbol2buy.put(order.symbol.bytes, buyOrderIds);
+			}
+			buyOrderIds.enqueue(orderId);
+		}
+
 		buf.put(ORDER_ADDED);
-		putInt(buf, id++, ID_LENGTH);
+		putInt(buf, orderId, ID_LENGTH);
 		buf.put(order.symbol.bytes, 0, SYMBOL_LENGTH);
 		buf.put(order.side);
 		putIntAsFloat(buf, order.price);
 		putInt(buf, order.qty, QTY_LENGTH);
 	}
 	
+	FixedByteSlice2ObjectOpenHashMap<IntPriorityQueue> symbol2sell =
+			new FixedByteSlice2ObjectOpenHashMap<IntPriorityQueue>(SYMBOL_LENGTH);
+	
+	FixedByteSlice2ObjectOpenHashMap<IntPriorityQueue> symbol2buy =
+			new FixedByteSlice2ObjectOpenHashMap<IntPriorityQueue>(SYMBOL_LENGTH);
+
+	Int2IntMap orderId2price = new Int2IntOpenHashMap();
+
+	public boolean executeOrder(ByteBuffer buf, Symbol symbol, byte side) {
+
+		int orderId;
+
+		if (SELL == side) {
+			IntPriorityQueue sellOrderIds = symbol2sell.get(symbol.bytes);
+			if (sellOrderIds == null || sellOrderIds.isEmpty()) return false;
+			orderId = sellOrderIds.dequeueInt();
+		} else {
+			IntPriorityQueue buyOrderIds = symbol2buy.get(symbol.bytes);
+			if (buyOrderIds == null || buyOrderIds.isEmpty()) return false;
+			orderId = buyOrderIds.dequeueInt();
+		}
+
+		orderId2price.remove(orderId);
+
+		buf.put(ORDER_EXECUTED);
+		putInt(buf, orderId, ID_LENGTH);
+		return true;
+	}
+
 	public static void main(String[] args) throws IOException {
 		generateSymbols();
 
@@ -100,9 +157,18 @@ public class ExchangeEmulator {
 		
 		int msgToGenerate = 30 * 1000 * 1000;
 		for (int msgCount = 0; msgCount < msgToGenerate; msgCount++) {
-			emulator.placeOrder(buf, order.symbol(randomSymbol()).side(randomSide()).price(randomPrice())
-					.qty(randomQty()));
-			buf.put(NL);
+
+			if (rnd.nextFloat() < 0.6) {
+
+				emulator.placeOrder(buf, order.symbol(randomSymbol()).side(randomSide()).price(randomPrice())
+						.qty(randomQty()));
+				buf.put(NL);
+
+			} else {
+				if (emulator.executeOrder(buf, randomSymbol(), randomSide())) {
+					buf.put(NL);
+				}
+			}
 
 			if (buf.remaining() < MAX_MSG_LENGTH + 1) {
 				buf.flip();
@@ -116,6 +182,7 @@ public class ExchangeEmulator {
 		}
 		channel.close();
 	}
+
 
 	private static int randomQty() {
 		return rnd.nextInt(MAX_QUANTITY);
@@ -141,6 +208,34 @@ public class ExchangeEmulator {
 
 	private static List<String> symbols;
 	private static Random rnd = new Random();
+
+	private IntComparator sellComparator = new IntComparator() {
+
+		public int compare(Integer o1, Integer o2) {
+			return compare(o1.intValue(), o2.intValue());
+		}
+
+		public int compare(int id1, int id2) {
+			int price1 = orderId2price.get(id1);
+			int price2 = orderId2price.get(id2);
+
+			return (price1 < price2 ? -1 : (price1 == price2 ? 0 : 1));
+		}
+	};
+
+	private IntComparator buyComparator = new IntComparator() {
+
+		public int compare(Integer o1, Integer o2) {
+			return compare(o1.intValue(), o2.intValue());
+		}
+
+		public int compare(int id1, int id2) {
+			int price1 = orderId2price.get(id1);
+			int price2 = orderId2price.get(id2);
+
+			return (price1 > price2 ? -1 : (price1 == price2 ? 0 : 1));
+		}
+	};
 
 	private static Symbol randomSymbol() {
 		return symbol.fromString(symbols.get(rnd.nextInt(symbols.size())));

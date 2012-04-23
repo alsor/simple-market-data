@@ -4,22 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
+import java.util.TreeMap;
 
 public class TopOfBook {
 
 
 	private final UpdateListener updateListener;
-
-	// private static class Book {
-	// public NavigableMap<Integer, Integer> sell = new TreeMap<Integer, Integer>();
-	// public NavigableMap<Integer, Integer> buy = new TreeMap<Integer, Integer>();
-	//
-	// public Update currentTop = new Update();
-	//
-	// public Book(String symbol) {
-	// currentTop.symbol = symbol;
-	// }
-	// }
 
 	private static class Top {
 		public int sellPrice;
@@ -32,15 +22,45 @@ public class TopOfBook {
 		this.updateListener = updateListener;
 	}
 
-	// Map<String, Book> books = new HashMap<String, Book>();
 	Map<String, Top> tops = new HashMap<String, Top>();
 
+	Map<Integer, Order> orders = new HashMap<Integer, Order>();
+
+	private Map<String, NavigableMap<Integer, Integer>> symbol2sell = new HashMap<String, NavigableMap<Integer, Integer>>();
+	private Map<String, NavigableMap<Integer, Integer>> symbol2buy = new HashMap<String, NavigableMap<Integer, Integer>>();
+
 	public void addOrder(Order order) {
-		// Book book = books.get(order.symbol);
-		// if (book == null) {
-		// book = new Book(order.symbol);
-		// books.put(order.symbol, book);
-		// }
+		orders.put(order.id, order);
+
+		if (Side.SELL.equals(order.side)) {
+			NavigableMap<Integer, Integer> prices = symbol2sell.get(order.symbol);
+			if (prices == null) {
+				prices = new TreeMap<Integer, Integer>();
+				prices.put(order.price, order.qty);
+				symbol2sell.put(order.symbol, prices);
+			} else {
+				Integer qty = prices.get(order.price);
+				if (qty == null) {
+					prices.put(order.price, order.qty);
+				} else {
+					prices.put(order.price, order.qty + qty.intValue());
+				}
+			}
+		} else {
+			NavigableMap<Integer, Integer> prices = symbol2buy.get(order.symbol);
+			if (prices == null) {
+				prices = new TreeMap<Integer, Integer>();
+				prices.put(order.price, order.qty);
+				symbol2buy.put(order.symbol, prices);
+			} else {
+				Integer qty = prices.get(order.price);
+				if (qty == null) {
+					prices.put(order.price, order.qty);
+				} else {
+					prices.put(order.price, order.qty + qty.intValue());
+				}
+			}
+		}
 
 		boolean updated = false;
 		Top top = tops.get(order.symbol);
@@ -89,42 +109,60 @@ public class TopOfBook {
 			updateListener.onUpdate(update);
 		}
 
-//		NavigableMap<Integer, Integer> side = Side.SELL.equals(order.side) ? book.sell : book.buy;
-//		
-//		Integer price = side.get(order.price);
-//		int newQty;
-//		if (price != null) {
-//			newQty = price.intValue() + order.qty;
-//		} else {
-//			newQty = order.qty;
-//		}
-//		side.put(order.price, newQty);
-//
-//		{
-//			Entry<Integer, Integer> sellEntry = book.sell.firstEntry();
-//			if (sellEntry != null) {
-//				int sellPrice = sellEntry.getKey();
-//				int sellQty = sellEntry.getValue();
-//				if (sellPrice != book.currentTop.sellPrice || sellQty != book.currentTop.sellQty) {
-//					book.currentTop.sellPrice = sellPrice;
-//					book.currentTop.sellQty = sellQty;
-//					updateListener.onUpdate(book.currentTop);
-//				}
-//			}
-//		}
-//
-//		{
-//			Entry<Integer, Integer> buyEntry = book.buy.lastEntry();
-//			if (buyEntry != null) {
-//				int buyPrice = buyEntry.getKey();
-//				int buyQty = buyEntry.getValue();
-//				if (buyPrice != book.currentTop.buyPrice || buyQty != book.currentTop.buyQty) {
-//					book.currentTop.buyPrice = buyPrice;
-//					book.currentTop.buyQty = buyQty;
-//					updateListener.onUpdate(book.currentTop);
-//				}
-//			}
-//		}
+	}
+
+
+	public void executeOrder(int orderId) {
+		Order order = orders.remove(orderId);
+		
+		Top top = tops.get(order.symbol);
+		
+		if (Side.SELL.equals(order.side)) {
+			
+			NavigableMap<Integer, Integer> prices = symbol2sell.get(order.symbol);
+			int qty = prices.get(order.price);
+			if (qty > order.qty) {
+				int newQty = qty - order.qty;
+				prices.put(order.price, newQty);
+				top.sellQty = newQty;
+			} else {
+				prices.remove(order.price);
+				Entry<Integer, Integer> newTop = prices.firstEntry();
+				if (newTop != null) {
+					top.sellPrice = newTop.getKey();
+					top.sellQty = newTop.getValue();
+				} else {
+					top.sellPrice = 0;
+					top.sellQty = 0;
+				}
+			}
+		} else {
+			NavigableMap<Integer, Integer> prices = symbol2buy.get(order.symbol);
+			int qty = prices.get(order.price);
+			if (qty > order.qty) {
+				int newQty = qty - order.qty;
+				prices.put(order.price, newQty);
+				top.buyQty = newQty;
+			} else {
+				prices.remove(order.price);
+				Entry<Integer, Integer> newTop = prices.lastEntry();
+				if (newTop != null) {
+					top.buyPrice = newTop.getKey();
+					top.buyQty = newTop.getValue();
+				} else {
+					top.buyPrice = 0;
+					top.buyQty = 0;
+				}
+			}
+		}
+
+		Update update = new Update();
+		update.symbol = order.symbol;
+		update.sellPrice = top.sellPrice;
+		update.sellQty = top.sellQty;
+		update.buyPrice = top.buyPrice;
+		update.buyQty = top.buyQty;
+		updateListener.onUpdate(update);
 	}
 
 }

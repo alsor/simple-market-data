@@ -66,4 +66,24 @@ public class MessageReaderTest {
 		assertEquals("456QWE", capturedSymbol2.getValue());
 	}
 
+	@Test
+	public void execute_order() throws Exception {
+		TopOfBook tob = createStrictMock(TopOfBook.class);
+		MessageCounter counter = createMock(MessageCounter.class);
+		MessageReader reader = new MessageReader(tob, counter);
+
+		ByteBuffer buffer = wrap("E0000000888\nE0000000999\nA0000");
+
+		tob.executeOrder(888);
+		counter.processed();
+		tob.executeOrder(999);
+		counter.processed();
+
+		replay(tob, counter);
+		reader.processBuffer(buffer);
+		verify(tob, counter);
+
+		assertThat(buffer, containsBytesInTheBeginning("A0000"));
+
+	}
 }
