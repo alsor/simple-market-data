@@ -55,7 +55,7 @@ public class ExchangeEmulator {
 			return this;
 		}
 	}
-	
+
 	public static class Order {
 		public static final byte SELL = 'S';
 		public static final byte BUY = 'B';
@@ -117,10 +117,10 @@ public class ExchangeEmulator {
 		putIntAsFloat(buf, order.price);
 		putInt(buf, order.qty, QTY_LENGTH);
 	}
-	
+
 	FixedByteSlice2ObjectOpenHashMap<IntPriorityQueue> symbol2sell =
 			new FixedByteSlice2ObjectOpenHashMap<IntPriorityQueue>(SYMBOL_LENGTH);
-	
+
 	FixedByteSlice2ObjectOpenHashMap<IntPriorityQueue> symbol2buy =
 			new FixedByteSlice2ObjectOpenHashMap<IntPriorityQueue>(SYMBOL_LENGTH);
 
@@ -154,8 +154,8 @@ public class ExchangeEmulator {
 		ExchangeEmulator emulator = new ExchangeEmulator();
 		ByteBuffer buf = ByteBuffer.allocate(FILE_BUFFER_SIZE);
 
-		
-		int msgToGenerate = 30 * 1000 * 1000;
+
+		int msgToGenerate = 5 * 1000 * 1000;
 		for (int msgCount = 0; msgCount < msgToGenerate; msgCount++) {
 
 			if (rnd.nextFloat() < 0.6) {
@@ -243,10 +243,10 @@ public class ExchangeEmulator {
 
 	private static void generateSymbols() {
 		Set<String> result = new HashSet<String>();
-		
+
 		int i = 0;
 		while(i < SYMBOLS_SIZE) {
-			StringBuffer sb = new StringBuffer(); 
+			StringBuffer sb = new StringBuffer();
 			for (int j = 0; j < SYMBOL_LENGTH; j++) {
 				char c = letters[rnd.nextInt(letters.length)];
 				sb.append(c);
