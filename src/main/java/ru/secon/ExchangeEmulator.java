@@ -155,7 +155,7 @@ public class ExchangeEmulator {
 		ByteBuffer buf = ByteBuffer.allocate(FILE_BUFFER_SIZE);
 
 
-		int msgToGenerate = 5 * 1000 * 1000;
+		int msgToGenerate = 15 * 1000 * 1000;
 		for (int msgCount = 0; msgCount < msgToGenerate; msgCount++) {
 
 			if (rnd.nextFloat() < 0.6) {

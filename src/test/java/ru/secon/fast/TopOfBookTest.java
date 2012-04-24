@@ -36,25 +36,6 @@ public class TopOfBookTest extends TopOfBookTestBase {
 		tob = new TopOfBook(updateListener);
 	}
 
-	@Test
-	public void generate_updates232() throws Exception {
-
-		String symbol = "123ABC";
-		int orderId = 789;
-		byte side = SELL;
-		int price = 255000;
-		int qty = 100;
-
-
-		// added order - new TOB
-		// added on lower price - nothing
-		// added on same price - new TOB with increased qty
-		// removed on same price - new TOB with decreased qty
-		// added with better price - new TOB with new price and qty
-
-		// added mathed order - new TOB with execution taken into account
-	}
-
 	@SuppressWarnings("unchecked")
 	private CaptureSymbol expectUpdate(int sellPrice, int sellQty, int buyPrice, int buyQty) {
 		CaptureSymbol capturedSymbol = new CaptureSymbol(0, 1);

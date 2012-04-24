@@ -32,20 +32,43 @@ public class TopOfBook {
 	private FixedByteSlice2ObjectOpenHashMap<Int2IntSortedMap> symbol2buy =
 			new FixedByteSlice2ObjectOpenHashMap<Int2IntSortedMap>(SYMBOL_LENGTH);
 
-	private Int2ByteMap orderId2side = new Int2ByteOpenHashMap();
-	private Int2IntMap orderId2price = new Int2IntOpenHashMap();
-	private Int2IntMap orderId2qty = new Int2IntOpenHashMap();
-	private Int2FixedByteSliceOpenHashMap orderId2symbol = new Int2FixedByteSliceOpenHashMap(SYMBOL_LENGTH);
+//	private Int2ByteMap orderId2side = new Int2ByteOpenHashMap();
+//	private Int2IntMap orderId2price = new Int2IntOpenHashMap();
+//	private Int2IntMap orderId2qty = new Int2IntOpenHashMap();
+//	private Int2FixedByteSliceOpenHashMap orderId2symbol = new Int2FixedByteSliceOpenHashMap(SYMBOL_LENGTH);
+
+	private byte[] tmpOrder = new byte[1 + 4 + 4 + 6];
+	private Int2FixedByteSliceOpenHashMap orders = new Int2FixedByteSliceOpenHashMap(1 + 4 + 4 + 6);
 
 	private int[] tops = new int[INITIAL_SIZE * 4];
 	private int nextPos = 0;
 
+	private void putInt(int offset, int val) {
+		byte b0 = (byte) (val >> 0);
+		byte b1 = (byte) (val >> 8);
+		byte b2 = (byte) (val >> 16);
+		byte b3 = (byte) (val >> 24);
+
+		tmpOrder[offset + 0] = b0;
+		tmpOrder[offset + 1] = b1;
+		tmpOrder[offset + 2] = b2;
+		tmpOrder[offset + 3] = b3;
+	}
+
+
 	public void onAddOrder(ByteBuffer src, int orderId, int symbolOffset, byte side, int price, int qty) {
 
-		orderId2side.put(orderId, side);
-		orderId2price.put(orderId, price);
-		orderId2qty.put(orderId, qty);
-		orderId2symbol.put(orderId, src, symbolOffset);
+		tmpOrder[0] = side;
+		putInt(1, price);
+		putInt(5, qty);
+		System.arraycopy(src.array(), symbolOffset, tmpOrder, 9, SYMBOL_LENGTH);
+
+		orders.put(orderId, tmpOrder);
+
+//		orderId2side.put(orderId, side);
+//		orderId2price.put(orderId, price);
+//		orderId2qty.put(orderId, qty);
+//		orderId2symbol.put(orderId, src, symbolOffset);
 
 		if (SELL == side) {
 			Int2IntSortedMap prices = symbol2sell.get(src, symbolOffset);
@@ -167,12 +190,28 @@ public class TopOfBook {
 		return tops[pos * 4 + 3];
 	}
 
+	public int getInt(int offset, byte[] array) {
+		byte b0 = array[offset + 0];
+		byte b1 = array[offset + 1];
+		byte b2 = array[offset + 2];
+		byte b3 = array[offset + 3];
+
+		return (int) ((((b3 & 0xff) << 24) | ((b2 & 0xff) << 16) | ((b1 & 0xff) << 8) | ((b0 & 0xff) << 0)));
+	}
+
 	public void executeOrder(int orderId) {
-		byte side = orderId2side.remove(orderId);
-		int price = orderId2price.remove(orderId);
-		int qty = orderId2qty.remove(orderId);
-		byte[] symbolSrc = orderId2symbol.array();
-		int symbolOffset = orderId2symbol.absoluteOffset(orderId2symbol.getPos(orderId));
+//		byte side = orderId2side.remove(orderId);
+//		int price = orderId2price.remove(orderId);
+//		int qty = orderId2qty.remove(orderId);
+//		byte[] symbolSrc = orderId2symbol.array();
+//		int symbolOffset = orderId2symbol.absoluteOffset(orderId2symbol.getPos(orderId));
+
+		int offset = orders.absoluteOffset(orders.getPos(orderId));
+		byte[] symbolSrc = orders.array();
+		int side = symbolSrc[offset];
+		int price = getInt(offset + 1, symbolSrc);
+		int qty = getInt(offset + 5, symbolSrc);
+		int symbolOffset = offset + 9;
 
 		int topPos = symbol2top.getValue(symbol2top.getPos(symbolSrc, symbolOffset));
 
@@ -215,6 +254,8 @@ public class TopOfBook {
 				}
 			}
 		}
+
+		orders.remove(orderId);
 
 		updateListener.onUpdate(symbolSrc, symbolOffset, getSellPrice(topPos), getSellQty(topPos),
 				getBuyPrice(topPos), getBuyQty(topPos));

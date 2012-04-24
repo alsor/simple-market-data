@@ -28,7 +28,7 @@ public class MessageReader {
 
 	/**
 	 * We always expecting that current position of the buffer is the beginning of the message
-	 * 
+	 *
 	 */
 	public void processBuffer(ByteBuffer buffer) {
 
