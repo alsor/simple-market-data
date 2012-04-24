@@ -2,11 +2,7 @@ package ru.secon.fast;
 
 import static ru.secon.Constants.SELL;
 import static ru.secon.Constants.SYMBOL_LENGTH;
-import it.unimi.dsi.fastutil.ints.Int2ByteMap;
-import it.unimi.dsi.fastutil.ints.Int2ByteOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntSortedMap;
 
 import java.nio.ByteBuffer;
@@ -17,7 +13,7 @@ import ru.undev.Int2FixedByteSliceOpenHashMap;
 
 public class TopOfBook {
 
-	public static final int INITIAL_SIZE = 10 * 1000;
+	public static final int INITIAL_SIZE = 100 * 1000;
 	private final UpdateListener updateListener;
 
 	public TopOfBook(UpdateListener updateListener) {
@@ -28,17 +24,13 @@ public class TopOfBook {
 			SYMBOL_LENGTH);
 
 	private FixedByteSlice2ObjectOpenHashMap<Int2IntSortedMap> symbol2sell =
-			new FixedByteSlice2ObjectOpenHashMap<Int2IntSortedMap>(SYMBOL_LENGTH);
+			new FixedByteSlice2ObjectOpenHashMap<Int2IntSortedMap>(SYMBOL_LENGTH, INITIAL_SIZE);
 	private FixedByteSlice2ObjectOpenHashMap<Int2IntSortedMap> symbol2buy =
-			new FixedByteSlice2ObjectOpenHashMap<Int2IntSortedMap>(SYMBOL_LENGTH);
-
-//	private Int2ByteMap orderId2side = new Int2ByteOpenHashMap();
-//	private Int2IntMap orderId2price = new Int2IntOpenHashMap();
-//	private Int2IntMap orderId2qty = new Int2IntOpenHashMap();
-//	private Int2FixedByteSliceOpenHashMap orderId2symbol = new Int2FixedByteSliceOpenHashMap(SYMBOL_LENGTH);
+			new FixedByteSlice2ObjectOpenHashMap<Int2IntSortedMap>(SYMBOL_LENGTH, INITIAL_SIZE);
 
 	private byte[] tmpOrder = new byte[1 + 4 + 4 + 6];
-	private Int2FixedByteSliceOpenHashMap orders = new Int2FixedByteSliceOpenHashMap(1 + 4 + 4 + 6);
+	private Int2FixedByteSliceOpenHashMap orders = new Int2FixedByteSliceOpenHashMap(1 + 4 + 4 + 6,
+			1 * 1000 * 1000);
 
 	private int[] tops = new int[INITIAL_SIZE * 4];
 	private int nextPos = 0;
@@ -65,10 +57,6 @@ public class TopOfBook {
 
 		orders.put(orderId, tmpOrder);
 
-//		orderId2side.put(orderId, side);
-//		orderId2price.put(orderId, price);
-//		orderId2qty.put(orderId, qty);
-//		orderId2symbol.put(orderId, src, symbolOffset);
 
 		if (SELL == side) {
 			Int2IntSortedMap prices = symbol2sell.get(src, symbolOffset);
@@ -100,6 +88,7 @@ public class TopOfBook {
 			}
 
 		}
+
 
 		boolean updated = false;
 		int entryPos = symbol2top.getPos(src, symbolOffset);
@@ -200,11 +189,6 @@ public class TopOfBook {
 	}
 
 	public void executeOrder(int orderId) {
-//		byte side = orderId2side.remove(orderId);
-//		int price = orderId2price.remove(orderId);
-//		int qty = orderId2qty.remove(orderId);
-//		byte[] symbolSrc = orderId2symbol.array();
-//		int symbolOffset = orderId2symbol.absoluteOffset(orderId2symbol.getPos(orderId));
 
 		int offset = orders.absoluteOffset(orders.getPos(orderId));
 		byte[] symbolSrc = orders.array();
